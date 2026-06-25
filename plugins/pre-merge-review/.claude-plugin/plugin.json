@@ -1,0 +1,13 @@
+{
+  "name": "pre-merge-review",
+  "description": "Review the diff of the current git branch against a target branch, checking only changed code against a set of extensible standards (security, performance, business logic, React/Next.js/Node/TypeScript). Read-only git.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Harry",
+    "email": "thedv91@gmail.com"
+  },
+  "homepage": "https://github.com/thedv91/skills",
+  "repository": "https://github.com/thedv91/skills",
+  "license": "MIT",
+  "keywords": ["code-review", "git", "diff", "pre-merge", "security", "performance"]
+}

@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
+  "name": "thedv91-skills",
+  "owner": {
+    "name": "Harry",
+    "email": "thedv91@gmail.com"
+  },
+  "description": "Claude Code skills for code review and React best practices.",
+  "plugins": [
+    {
+      "name": "pre-merge-review",
+      "source": "./plugins/pre-merge-review",
+      "description": "Review the diff of the current git branch against a target branch, checking only changed code against extensible standards (security, performance, business logic, React/Next.js/Node/TypeScript). Read-only git.",
+      "category": "code-quality",
+      "tags": ["code-review", "git", "pre-merge"]
+    },
+    {
+      "name": "react-compiler",
+      "source": "./plugins/react-compiler",
+      "description": "Write React components and hooks fully compatible with React Compiler's automatic memoization.",
+      "category": "react",
+      "tags": ["react", "react-compiler", "performance"]
+    },
+    {
+      "name": "react-effect-event",
+      "source": "./plugins/react-effect-event",
+      "description": "Use React's useEffectEvent to separate reactive dependencies from non-reactive latest-value reads inside Effects. React 19.2+.",
+      "category": "react",
+      "tags": ["react", "useEffectEvent", "hooks"]
+    }
+  ]
+}

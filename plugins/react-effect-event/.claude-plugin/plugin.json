@@ -1,0 +1,13 @@
+{
+  "name": "react-effect-event",
+  "description": "Use React's useEffectEvent to separate reactive dependencies from non-reactive \"latest value\" reads inside Effects, fixing stale closures and effects that re-run more than they should. React 19.2+.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Harry",
+    "email": "thedv91@gmail.com"
+  },
+  "homepage": "https://github.com/thedv91/skills",
+  "repository": "https://github.com/thedv91/skills",
+  "license": "MIT",
+  "keywords": ["react", "useEffectEvent", "hooks", "effects", "react-19"]
+}

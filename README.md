@@ -1,3 +1,47 @@
-# Karpathy-Inspired Claude Code Guidelines
+# thedv91-skills
 
-A single `CLAUDE.md` file to improve Claude Code behavior, derived from [Andrej Karpathy's observations](https://x.com/karpathy/status/2015883857489522876) on LLM coding pitfalls.
+A Claude Code [plugin marketplace](https://code.claude.com/docs/en/plugin-marketplaces) of skills for code review and React best practices.
+
+## Plugins
+
+| Plugin | Description |
+| --- | --- |
+| `pre-merge-review` | Review the diff of the current branch against a target branch against extensible standards (security, performance, business logic, React/Next.js/Node/TypeScript). Read-only git. Invoke with `/pre-merge-review:code-review`. |
+| `react-compiler` | Write React components and hooks fully compatible with React Compiler's automatic memoization. |
+| `react-effect-event` | Use React's `useEffectEvent` to separate reactive dependencies from non-reactive latest-value reads inside Effects. React 19.2+. |
+
+## Install
+
+Add the marketplace, then install the plugins you want:
+
+```shell
+/plugin marketplace add thedv91/skills
+/plugin install pre-merge-review@thedv91-skills
+/plugin install react-compiler@thedv91-skills
+/plugin install react-effect-event@thedv91-skills
+```
+
+Or from the CLI:
+
+```shell
+claude plugin marketplace add thedv91/skills
+claude plugin install pre-merge-review@thedv91-skills
+```
+
+Update later with `/plugin marketplace update thedv91-skills`.
+
+## Layout
+
+```
+.claude-plugin/marketplace.json   # marketplace catalog
+plugins/<name>/
+  .claude-plugin/plugin.json      # plugin manifest
+  skills/<name>/SKILL.md          # the skill
+```
+
+## Validate
+
+```shell
+claude plugin validate .                       # marketplace.json
+claude plugin validate ./plugins/pre-merge-review   # a plugin manifest + skill frontmatter
+```
