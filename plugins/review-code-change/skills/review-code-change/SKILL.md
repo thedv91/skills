@@ -56,18 +56,90 @@ or a review of code that is not part of this branch's diff.
    If a changed file maps to no language standard, the `Always` standards still
    apply.
 
-5. **Read surrounding code and call sites.** For each non-trivial hunk, open the
-   full file and follow callers/callees before judging. Never evaluate a hunk in
-   isolation — a line that looks wrong in the diff may be correct in context, and
-   vice versa.
+5. **Read surrounding code and trace impact across the codebase.** Each reviewer
+   agent does this within its own bucket (see *Independent multi-agent review*).
+   For each non-trivial hunk, open the full file before judging. Never evaluate a
+   hunk in isolation — a line that looks wrong in the diff may be correct in context, and
+   vice versa. And never judge a changed symbol in isolation either: before
+   forming any finding about a changed **function, method, exported variable,
+   type, or constant**, map who depends on it. A one-line change to a shared
+   symbol can break callers the diff never shows.
 
-6. **Verify each finding before reporting it.** Re-examine the candidate issue
-   adversarially: can you point to the exact line and prove it is wrong (or trace
-   an input that breaks it)? Drop anything you cannot substantiate — a false
-   positive costs more trust than a missed nit. See the false-positive list under
+   - **Use graph/semantic tools, not text `grep`**, so renames, overloads, and
+     re-exports are caught rather than missed.
+     - **codegraph** (primary, when the project has run `codegraph init` — check
+       with `codegraph_status`): `codegraph_impact <symbol>` for the repo-wide
+       blast radius, `codegraph_explore` for the verbatim source of affected
+       sites plus the call paths between them, and `codegraph_callers` /
+       `codegraph_callees` for direct edges.
+     - **Serena** (fallback when codegraph is not initialized):
+       `find_referencing_symbols`, `find_symbol`, `get_symbols_overview`,
+       `find_implementations`, `find_declaration`.
+   - **For each dependent site, ask whether the change alters the symbol's
+     contract** — signature, return type, thrown errors, null/empty behavior,
+     ordering, or side effects — and whether every caller still satisfies the new
+     contract. For a **renamed or removed** symbol, confirm every reference was
+     updated.
+   - **If callers cannot be fully traced** — dynamic dispatch, reflection,
+     string-keyed lookup, cross-package boundaries — **say so and lower that
+     finding's confidence** accordingly.
+
+   These tools are **read-only inspection** only; the review never mutates the
+   repository (see step 2).
+
+6. **Verify each finding with an independent agent before reporting it.** Hand
+   each candidate to a *different* agent than the one that raised it, tasked to
+   refute it: can it point to the exact line and prove the finding wrong (or trace
+   an input that breaks it)? Drop anything the verifier cannot substantiate — a
+   false positive costs more trust than a missed nit. See *Independent
+   multi-agent review* for the dispatch and the false-positive list under
    *Confidence control*.
 
-7. **Report findings grouped by standard**, in the output format below.
+7. **Report findings grouped by standard**, in the output format below — the
+   orchestrator merges the verified findings from every agent into one report.
+
+## Independent multi-agent review
+
+A single pass that both raises a finding and clears it is the weakest link: the
+same context that produced the finding rationalizes it. Run the review as an
+**orchestrator plus independent agents** so each finding is produced and checked
+under fresh, separate context.
+
+- **Orchestrator (you).** Do steps 1–4 once, then package a shared brief every
+  agent receives verbatim: the target branch, the diff, the changed-file list, a
+  one-paragraph intent summary, and the selected reference files. The
+  orchestrator does not review — it dispatches, deduplicates, and renders the
+  final report (step 7).
+
+- **Reviewer agents — fan out to find.** Dispatch one independent agent per
+  **standard bucket**, each with fresh context and only its brief plus its own
+  reference file(s). Each performs step 5 (open full files, trace cross-codebase
+  impact via codegraph/Serena) within its remit and returns candidate findings in
+  the output format. Agents never see each other's reasoning — that independence
+  is the point. Default buckets (drop any whose standards weren't selected at
+  step 4; split a large one, merge tiny ones):
+  - **Security** — `security.md`.
+  - **Correctness & intent** — `business-logic.md`, `user-perspective.md`.
+  - **Code health** — `code-quality.md`, `performance.md`, `best-practices.md`.
+  - **Language** — the triggered subset of `typescript.md`, `react.md`,
+    `nextjs.md`, `nodejs.md`.
+
+  If the host exposes specialist agent types, route a bucket to the matching one
+  (security → a security auditor); otherwise a general reviewer agent is fine.
+
+- **Verifier agents — fan in to refute.** After deduplicating candidates by
+  (file, line, claim), hand each survivor to a **different** agent than the one
+  that raised it, tasked to *refute* it: point to the exact line and prove it
+  wrong, or trace an input that breaks it. Keep only findings that survive and
+  clear the >80% bar (step 6) — a second set of eyes, not the author.
+
+Every agent is a **read-only inspector** (step 2): it may read, trace, and query
+the graph, but never mutate the repo.
+
+**Degraded mode.** Where the host cannot spawn subagents, run the same shape
+sequentially — review one bucket at a time as a self-contained pass, then
+re-examine each candidate adversarially before it ships. Independence is weaker
+this way, so hold the >80% bar more strictly to compensate.
 
 ## Confidence control
 

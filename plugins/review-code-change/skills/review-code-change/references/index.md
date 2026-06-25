@@ -12,6 +12,7 @@ other file needs to change.
 | `security.md`        | CRITICAL      | Always                                                          | Secrets/env exposure, injection/XSS, authn/authz, redirects, data leaks, deps. |
 | `code-quality.md`    | HIGH          | Always                                                          | Structure, error handling, dead code, naming, complexity, test coverage. |
 | `business-logic.md`  | HIGH          | Always                                                          | Correctness vs intent, edge cases, state/transaction integrity, idempotency. |
+| `user-perspective.md`| HIGH          | Always                                                          | User journey, user-driven edge cases, failure-to-symptom mapping, async feedback. |
 | `performance.md`     | MEDIUM        | Always                                                          | N+1/unbounded queries, quadratic loops, serial I/O, caching, memory footprint. |
 | `best-practices.md`  | LOW           | Always                                                          | Engineering hygiene, TODOs, magic values, imports/format, PR hygiene.   |
 | `typescript.md`      | HIGH          | `*.ts`, `*.tsx`, `*.mts`, `*.cts`                              | Strict typing, no `any` leak, discriminated unions, null handling, exhaustiveness. |
