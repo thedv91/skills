@@ -1,5 +1,5 @@
 {
-  "name": "pre-merge-review",
+  "name": "review-code-change",
   "description": "Review the diff of the current git branch against a target branch, checking only changed code against a set of extensible standards (security, performance, business logic, React/Next.js/Node/TypeScript). Read-only git.",
   "version": "1.0.0",
   "author": {

@@ -8,8 +8,8 @@
   "description": "Claude Code skills for code review and React best practices.",
   "plugins": [
     {
-      "name": "pre-merge-review",
-      "source": "./plugins/pre-merge-review",
+      "name": "review-code-change",
+      "source": "./plugins/review-code-change",
       "description": "Review the diff of the current git branch against a target branch, checking only changed code against extensible standards (security, performance, business logic, React/Next.js/Node/TypeScript). Read-only git.",
       "category": "code-quality",
       "tags": ["code-review", "git", "pre-merge"]

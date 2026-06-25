@@ -1,5 +1,5 @@
 ---
-name: code-review
+name: review-code-change
 description: >
   Review the diff of the current git branch against a target branch the user
   provides, checking only the changed code against a set of standards. Trigger
@@ -12,7 +12,7 @@ metadata:
   version: "1.0.0"
 ---
 
-# code-review
+# review-code-change
 
 Review the work introduced on the **current branch** relative to a **target
 branch**, judging only the changed lines against a set of standards. Standards
