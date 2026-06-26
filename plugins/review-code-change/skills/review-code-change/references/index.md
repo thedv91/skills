@@ -17,7 +17,7 @@ other file needs to change.
 | `best-practices.md`  | LOW           | Always                                                          | Engineering hygiene, TODOs, magic values, imports/format, PR hygiene.   |
 | `typescript.md`      | HIGH          | `*.ts`, `*.tsx`, `*.mts`, `*.cts`                              | Strict typing, no `any` leak, discriminated unions, null handling, exhaustiveness. |
 | `nodejs.md`          | HIGH          | Server/backend `*.js`, `*.mjs`, `*.cjs`, `*.ts` (non-React)    | Async/await misuse, unhandled rejections, event-loop blocking, streams, env/config. |
-| `react.md`           | HIGH          | `*.jsx`, `*.tsx` (React components/hooks)                      | Hook deps, keys, re-render cost, effect cleanup, controlled inputs, a11y basics. |
+| `react.md`           | HIGH          | `*.jsx`, `*.tsx` (React components/hooks)                      | Stale closures/dep intent, needless Effects, keys as identity, state init/updates, memo defeats, external stores, React 19 APIs, a11y. |
 | `nextjs.md`          | HIGH          | Next.js projects: `app/**`, `pages/**`, route handlers, `proxy.ts`/`middleware.ts`, `next.config.*` | Server/Client boundary, server actions, caching/revalidate, `NEXT_PUBLIC_` env, next/image/link. |
 
 ## Selection notes

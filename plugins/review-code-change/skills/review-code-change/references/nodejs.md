@@ -45,6 +45,34 @@ process.on('uncaughtException', (err) => log(err)); // then resumes
 process.on('uncaughtException', (err) => { log(err); cleanup(); process.exit(1); });
 ```
 
+## Error objects & stack traces
+
+- Throw an `Error` (or a subclass), never a string or plain literal — only an
+  `Error` carries a stack trace and a `name`. Reject `throw 'failed'` and
+  `Promise.reject('nope')` (Node Best Practices).
+- Custom errors extend the built-in `Error` and carry the metadata callers
+  branch on — a stable `name`, an HTTP/status code, and an `isOperational` flag
+  marking expected failures (bad input, missing resource) apart from programmer
+  bugs. The centralized handler reads that flag to decide *respond* vs
+  *crash-and-restart* (ties to operational-vs-programmer above) (Node Best
+  Practices).
+- Inside a `try`, write `return await promise`, not `return promise`. A bare
+  `return` settles the promise *after* the `try` scope exits, so a rejection
+  skips the local `catch` and the stack trace is truncated at the async
+  boundary (Node Best Practices).
+
+```js
+// BAD — the catch never runs and the stack is truncated
+async function load(id) {
+  try { return fetchUser(id); } catch (err) { /* unreachable */ }
+}
+// GOOD — rejection is caught here, full stack preserved
+async function load(id) {
+  try { return await fetchUser(id); }
+  catch (err) { throw new AppError('load failed', { cause: err }); }
+}
+```
+
 ## Event-loop blocking
 
 - No synchronous, CPU-heavy work on the request path: large `JSON.parse` /
@@ -98,6 +126,32 @@ await pipeline(readable, transform, writable);
 - Resource handles (DB connections, file descriptors, timers) are closed/cleared
   on shutdown and on error paths.
 
+## Module loading & initialization
+
+- `require`/`import` sit at the top of the file, not inside functions or
+  branches — top-level imports surface missing/cyclic dependencies at load time
+  and avoid a hidden synchronous module load on a hot path. Lazy-load only with
+  a stated reason: a heavy optional dependency, or breaking a require cycle
+  (Node Best Practices).
+- No side effects at module-load time: the top level should *define*, not *run*
+  — no DB connections, network calls, or file I/O triggered merely by importing
+  the file. Put that in an exported `init()`/`start()` the caller invokes, so
+  import order and tests stay predictable (Node Best Practices).
+- Built-in modules are imported with the `node:` protocol (`require('node:fs')`,
+  `import … from 'node:path'`) so a typo-squatted or malicious npm package
+  cannot shadow a core module (Node Best Practices).
+
+```js
+// BAD — connects to the DB just by being imported; hard to test, racy at boot
+const db = require('mysql2').createConnection(process.env.DB_URL);
+// GOOD — importing only defines; the caller decides when to connect
+const mysql = require('mysql2');           // 3rd-party: plain specifier
+const assert = require('node:assert');     // built-in: node: protocol
+let db;
+function init() { db = mysql.createConnection(process.env.DB_URL); }
+module.exports = { init };
+```
+
 ## Process & concurrency
 
 - No reliance on a single in-process value for state that must survive across
@@ -111,4 +165,4 @@ await pipeline(readable, transform, writable);
 - [Node.js API — `process` events](https://nodejs.org/api/process.html) — `unhandledRejection`/`uncaughtException` semantics, default termination, why resuming after an uncaught exception is unsafe.
 - [Node.js API — Stream](https://nodejs.org/api/stream.html) — `stream.pipeline` error forwarding and cleanup, `pipe` not closing destination on error, `write()` return value and `'drain'` backpressure.
 - [OWASP Node.js Security Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Nodejs_Security_Cheat_Sheet.html) — request size limits, ReDoS, event-loop overload handling, EventEmitter error listeners, input validation.
-- [Node.js Best Practices (goldbergyoni)](https://github.com/goldbergyoni/nodebestpractices) — centralized error handling, operational vs programmer errors, fail-fast validation, graceful exit on catastrophic errors, NODE_ENV, mature logging, reverse-proxy delegation.
+- [Node.js Best Practices (goldbergyoni)](https://github.com/goldbergyoni/nodebestpractices) — centralized error handling, operational vs programmer errors, extending the built-in Error, `return await` for full stack traces, fail-fast validation, graceful exit on catastrophic errors, top-level imports with no load-time side effects, `node:` protocol for built-ins, NODE_ENV, mature logging, reverse-proxy delegation.

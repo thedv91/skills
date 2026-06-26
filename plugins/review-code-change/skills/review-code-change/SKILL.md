@@ -56,15 +56,26 @@ or a review of code that is not part of this branch's diff.
    If a changed file maps to no language standard, the `Always` standards still
    apply.
 
+   **Also discover the project's own tech-stack skills.** The bundled
+   `references/` are not the only standards. A project commonly installs
+   best-practice skills for its stack (e.g. `vercel-react-best-practices`,
+   `vercel-react-native-skills`, `next-best-practices`, and skills for React Native, Next.js, and other
+   frameworks). These are project-dependent, so they live nowhere in `index.md`
+   — discover them at review time from the host's available skills. Match a skill
+   to the diff by its declared **stack/description, not its name**; when unsure
+   whether one applies, read its `SKILL.md` before deciding. Treat each matching
+   skill as an **additional standard** for the corresponding language bucket, and
+   load its guidance only when a changed file falls in its scope — the same
+   progressive-disclosure rule as the bundled references.
+
 5. **Read surrounding code and trace impact across the codebase.** Each reviewer
-   agent does this within its own bucket (see *Independent multi-agent review*).
+   agent does this within its own bucket (see _Independent multi-agent review_).
    For each non-trivial hunk, open the full file before judging. Never evaluate a
    hunk in isolation — a line that looks wrong in the diff may be correct in context, and
    vice versa. And never judge a changed symbol in isolation either: before
    forming any finding about a changed **function, method, exported variable,
    type, or constant**, map who depends on it. A one-line change to a shared
    symbol can break callers the diff never shows.
-
    - **Use graph/semantic tools, not text `grep`**, so renames, overloads, and
      re-exports are caught rather than missed.
      - **codegraph** (primary, when the project has run `codegraph init` — check
@@ -88,12 +99,12 @@ or a review of code that is not part of this branch's diff.
    repository (see step 2).
 
 6. **Verify each finding with an independent agent before reporting it.** Hand
-   each candidate to a *different* agent than the one that raised it, tasked to
+   each candidate to a _different_ agent than the one that raised it, tasked to
    refute it: can it point to the exact line and prove the finding wrong (or trace
    an input that breaks it)? Drop anything the verifier cannot substantiate — a
-   false positive costs more trust than a missed nit. See *Independent
-   multi-agent review* for the dispatch and the false-positive list under
-   *Confidence control*.
+   false positive costs more trust than a missed nit. See _Independent
+   multi-agent review_ for the dispatch and the false-positive list under
+   _Confidence control_.
 
 7. **Report findings grouped by standard**, in the output format below — the
    orchestrator merges the verified findings from every agent into one report.
@@ -107,7 +118,8 @@ under fresh, separate context.
 
 - **Orchestrator (you).** Do steps 1–4 once, then package a shared brief every
   agent receives verbatim: the target branch, the diff, the changed-file list, a
-  one-paragraph intent summary, and the selected reference files. The
+  one-paragraph intent summary, the selected reference files, and any
+  project-installed tech-stack skills matched at step 4. The
   orchestrator does not review — it dispatches, deduplicates, and renders the
   final report (step 7).
 
@@ -122,14 +134,18 @@ under fresh, separate context.
   - **Correctness & intent** — `business-logic.md`, `user-perspective.md`.
   - **Code health** — `code-quality.md`, `performance.md`, `best-practices.md`.
   - **Language** — the triggered subset of `typescript.md`, `react.md`,
-    `nextjs.md`, `nodejs.md`.
+    `nextjs.md`, `nodejs.md`, **plus any project-installed tech-stack skills
+    matched at step 4** (e.g. `react-compiler`, `react-effect-event`). The
+    language agent checks the changed code against both the bundled references
+    and these skills' practices, attributing each finding to the source it came
+    from so the report shows which standard was violated.
 
   If the host exposes specialist agent types, route a bucket to the matching one
   (security → a security auditor); otherwise a general reviewer agent is fine.
 
 - **Verifier agents — fan in to refute.** After deduplicating candidates by
   (file, line, claim), hand each survivor to a **different** agent than the one
-  that raised it, tasked to *refute* it: point to the exact line and prove it
+  that raised it, tasked to _refute_ it: point to the exact line and prove it
   wrong, or trace an input that breaks it. Keep only findings that survive and
   clear the >80% bar (step 6) — a second set of eyes, not the author.
 
@@ -158,7 +174,7 @@ list padded with maybes.
 **Do NOT flag (false positives that erode trust):**
 
 - Pre-existing issues outside the diff (except the CRITICAL-security exception).
-- Code that *looks* like a bug but is actually correct in context — verify
+- Code that _looks_ like a bug but is actually correct in context — verify
   before reporting.
 - Pedantic nitpicks a senior engineer would not raise.
 - Anything a linter/formatter/type-checker already catches.
@@ -169,8 +185,9 @@ list padded with maybes.
 
 ## Output format
 
-Group findings under a heading per standard (e.g. `## Security`). For each
-finding:
+Group findings under a heading per standard (e.g. `## Security`). A matched
+tech-stack skill counts as a standard for this purpose — name its heading after
+the skill (e.g. `## react-compiler`). For each finding:
 
 ```
 [SEVERITY] Short title
@@ -218,3 +235,8 @@ Adding a new standard is two steps and requires **no edit to this file**:
 The file-type → reference mapping lives **only** in `references/index.md`, so it
 stays the single source of truth. The workflow above reads that table at step 4;
 it never hard-codes the list of standards.
+
+This applies to standards **bundled** with the skill. A project's own installed
+tech-stack skills are a separate, runtime-discovered source (step 4) and are not
+registered in `index.md` — they vary per project, so the review finds them at
+review time rather than from this table.
