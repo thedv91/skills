@@ -1,0 +1,13 @@
+{
+  "name": "auto-commit",
+  "description": "Automatically commit tracked git changes after a build or task completes. Picks a single Conventional Commit for small changes, or splits large features into multiple logical commits grouped by architectural layer. Commit-only: never pushes, never amends. Supports a --dry-run flag.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Harry",
+    "email": "thedv91@gmail.com"
+  },
+  "homepage": "https://github.com/thedv91/skills",
+  "repository": "https://github.com/thedv91/skills",
+  "license": "MIT",
+  "keywords": ["git", "commit", "conventional-commits", "automation", "workflow"]
+}

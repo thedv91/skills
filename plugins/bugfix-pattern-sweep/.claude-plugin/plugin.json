@@ -1,0 +1,21 @@
+{
+  "name": "bugfix-pattern-sweep",
+  "description": "Read the diff of a bug-fix (PR/MR, branch, or working tree), infer the root-cause anti-pattern it removed, then sweep the whole codebase for sibling occurrences of the same defect. Read-only: it reports and ranks, it does not edit.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Harry",
+    "email": "thedv91@gmail.com"
+  },
+  "homepage": "https://github.com/thedv91/skills",
+  "repository": "https://github.com/thedv91/skills",
+  "license": "MIT",
+  "keywords": [
+    "code-review",
+    "bugfix",
+    "root-cause",
+    "pattern",
+    "sibling-bugs",
+    "git",
+    "diff"
+  ]
+}

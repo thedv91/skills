@@ -8,11 +8,25 @@
   "description": "Claude Code skills for code review and React best practices.",
   "plugins": [
     {
+      "name": "auto-commit",
+      "source": "./plugins/auto-commit",
+      "description": "Automatically commit tracked git changes after a build or task completes. Single Conventional Commit for small changes, or multiple logical commits grouped by architectural layer for large features. Commit-only: never pushes or amends. Supports --dry-run.",
+      "category": "workflow",
+      "tags": ["git", "commit", "conventional-commits", "automation"]
+    },
+    {
       "name": "review-code-change",
       "source": "./plugins/review-code-change",
       "description": "Review the diff of the current git branch against a target branch, checking only changed code against extensible standards (security, performance, business logic, React/Next.js/Node/TypeScript). Read-only git.",
       "category": "code-quality",
       "tags": ["code-review", "git", "pre-merge"]
+    },
+    {
+      "name": "bugfix-pattern-sweep",
+      "source": "./plugins/bugfix-pattern-sweep",
+      "description": "Read the diff of a bug-fix (PR/MR, branch, or working tree), infer the root-cause anti-pattern it removed, then sweep the whole codebase for sibling occurrences of the same defect. Read-only: it reports and ranks, it does not edit.",
+      "category": "code-quality",
+      "tags": ["code-review", "bugfix", "root-cause", "sibling-bugs", "git"]
     },
     {
       "name": "react-compiler",
@@ -27,6 +41,13 @@
       "description": "Use React's useEffectEvent to separate reactive dependencies from non-reactive latest-value reads inside Effects. React 19.2+.",
       "category": "react",
       "tags": ["react", "useEffectEvent", "hooks"]
+    },
+    {
+      "name": "file-hooks",
+      "source": "./plugins/file-hooks",
+      "description": "Run project-defined commands on the file Claude just edited. A PostToolUse (Edit|Write) hook dispatches to per-project rules in .claude/file-hooks.json, matching the changed file by regex and substituting {file}. Shared mechanism, per-project commands.",
+      "category": "workflow",
+      "tags": ["hooks", "post-tool-use", "lint", "format", "automation"]
     }
   ]
 }

@@ -1,0 +1,13 @@
+{
+  "name": "file-hooks",
+  "description": "Run project-defined commands on the file Claude just edited. A PostToolUse (Edit|Write) hook dispatches to per-project rules declared in .claude/file-hooks.json, matching the changed file by regex and substituting {file}. Mechanism is shared here; the commands are policy and live in each project.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Harry",
+    "email": "thedv91@gmail.com"
+  },
+  "homepage": "https://github.com/thedv91/skills",
+  "repository": "https://github.com/thedv91/skills",
+  "license": "MIT",
+  "keywords": ["hooks", "post-tool-use", "lint", "format", "automation"]
+}

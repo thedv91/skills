@@ -1,0 +1,24 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/run-on-changed-file.sh format",
+            "timeout": 30,
+            "statusMessage": "Running file-hooks (format)..."
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/run-on-changed-file.sh check",
+            "timeout": 60,
+            "statusMessage": "Running file-hooks (check)...",
+            "async": true
+          }
+        ]
+      }
+    ]
+  }
+}

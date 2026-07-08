@@ -1,0 +1,13 @@
+{
+  "name": "react-spring",
+  "description": "Expert guidance for the react-spring animation library (v9+, @react-spring/web) hooks API: useSpring, useSprings, useTrail, useTransition, useChain, useSpringRef, the animated component, to() interpolation, and spring config.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Harry",
+    "email": "thedv91@gmail.com"
+  },
+  "homepage": "https://github.com/thedv91/skills",
+  "repository": "https://github.com/thedv91/skills",
+  "license": "MIT",
+  "keywords": ["react", "react-spring", "animation", "hooks", "useSpring", "useTransition"]
+}
