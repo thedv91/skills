@@ -1,6 +1,6 @@
 {
   "name": "review-code-change",
-  "description": "Review the diff of the current git branch against a target branch, checking only changed code against a set of extensible standards (security, performance, business logic, React/Next.js/Node/TypeScript). Read-only git.",
+  "description": "Review the diff of the current git branch against a target branch. Ships the multi-agent review-code-change skill (extensible standards: security, performance, business logic, React/Next.js/Node/TypeScript) and the /review-code slash command (blast-radius mapping grounded in real test/typecheck/lint output). Read-only git.",
   "version": "1.0.0",
   "author": {
     "name": "Harry",
@@ -9,5 +9,5 @@
   "homepage": "https://github.com/thedv91/skills",
   "repository": "https://github.com/thedv91/skills",
   "license": "MIT",
-  "keywords": ["code-review", "git", "diff", "pre-merge", "security", "performance"]
+  "keywords": ["code-review", "git", "diff", "pre-merge", "security", "performance", "command"]
 }
