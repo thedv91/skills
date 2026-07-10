@@ -8,7 +8,7 @@ allowed-tools: Bash(git rev-parse:*), Bash(git fetch:*), Bash(git merge-base:*),
 
 Target branch to compare against: **$ARGUMENTS** (defaults to `main` if empty).
 
-## Step 0 — Collect the diff
+## Collect the diff
 
 Resolve TARGET first: TARGET = `$ARGUMENTS` (the branch the user passed), or
 `main` if it is empty. Prefer `$ARGUMENTS` over positional `$1` — in some
@@ -45,7 +45,7 @@ If `git diff` is empty → report "No changes between the current branch and `<T
 
 If the target branch does not exist → try `origin/<TARGET>`. Still missing → list branches (`git branch -a`) and ask the user.
 
-## Step 0.5 — Auto-detect available skills (do not skip)
+## Auto-detect available skills (do not skip)
 
 Scan the skill directories on this machine to see if any skill can assist this review.
 This is automatic: do NOT hardcode skill names — read their descriptions and decide.
@@ -58,12 +58,14 @@ lint, quality) and only read the frontmatter of the matches:
 
 ```
 find .claude/skills ~/.claude/skills -name SKILL.md 2>/dev/null
-grep -rilE 'review|test|security|accessib|performance|lint|quality|best.?practice' \
+grep -rilE 'code.?review|security|accessib|test.?(coverage|strateg)|performance.?(audit|budget)|code.?quality|best.?practice' \
   .claude/skills ~/.claude/skills --include=SKILL.md 2>/dev/null
 ```
 
-For each matching `SKILL.md`, read its `name` + `description` (frontmatter only, no
-need to read the whole file). Then:
+Read `name` + `description` (frontmatter only) **only for the matches whose
+filename/path signals relevance** (contains `review`, or the changed code's
+domain) — the grep just confirms a skill worth checking exists; do NOT read the
+frontmatter of every hit (bare keywords like `test` still over-match). Then:
 
 1. **Code-review skills** (e.g. `code-review`, `engineering:code-review`):
    if present → read it fully and USE its criteria/checklist together with the steps
@@ -77,7 +79,7 @@ Briefly tell the user which skills were picked up and what for, e.g.
 _"Detected & applied: engineering:code-review (checklist), testing-strategy (test
 coverage assessment)."_ If no skill is relevant → skip silently.
 
-## Step 1 — Map the BLAST RADIUS first (mandatory, do not skip)
+## Map the BLAST RADIUS first (mandatory, do not skip)
 
 Before judging any changed line, determine **every place the change reaches**.
 Do this deterministically with the code-graph tools — do NOT infer the impact by
@@ -98,27 +100,38 @@ diff, enumerate its references **with a tool, not from memory**:
      2. **Always start cheap:** `get_minimal_context_tool(task="review changes")`
         returns ~100 tokens — overall risk, communities, affected flows, and the
         tools it suggests calling next. Let it steer the rest of this workflow.
-     3. **One-call context:** `get_review_context_tool(base="<TARGET>")` returns
-        the changed files (auto-detected from the diff), the impacted nodes/files
-        (blast radius), source snippets for the changed areas, and review guidance
-        (test-coverage gaps, wide-impact and inheritance warnings). This largely
-        replaces the manual `git diff` in Step 0 **and** the blast-radius hunt here
-        when the server is present. Treat every snippet it returns as already Read.
+     3. **Blast radius + context.** `get_review_context_tool` at
+        `detail_level="standard"` embeds the whole impact-set graph (plus source
+        snippets), which **overflows the token limit on any non-trivial change —
+        the call errors and dumps to a file, returning nothing usable.** Verified:
+        it still overflowed even scoped to the changed files with `max_depth=1`,
+        and even with `include_source=false` (the graph alone was too big). So do
+        NOT rely on `standard` for context. Instead:
+        - `get_review_context_tool(base="<TARGET>", detail_level="minimal")` for the
+          risk / test-gap overview (counts only — no snippets, no file list), then
+        - `get_impact_radius_tool(base="<TARGET>", detail_level="minimal", max_depth=1)`
+          for the blast-radius file list.
+        Use the changed files' source from the **Collect the diff** `git diff` as
+        your snippets, and open each impacted file the radius list names. Only reach for
+        `standard` when the impact set is genuinely tiny, accepting it may error.
      4. Widen the blast radius as needed: `get_impact_radius_tool(base="<TARGET>")`
         for the whole diff, or `query_graph_tool(pattern="callers_of" | "callees_of"
         | "imports_of", target=<symbol>)` to walk the call/dependency graph for a
         specific changed symbol.
-     5. Test coverage → feeds Step 1.5: `query_graph_tool(pattern="tests_for",
+     5. Test coverage → feeds **Verify & ground**: `query_graph_tool(pattern="tests_for",
         target=<function>)` tells you which changed functions have no test.
-     6. Risk → feeds Step 3 severity: `detect_changes_tool` returns per-change risk
+     6. Risk → feeds **Classify severity**: `detect_changes_tool` returns per-change risk
         scores (security sensitivity, test-coverage gaps, cross-community callers).
         Use them as one input to severity, not as a substitute for your judgement.
      7. Flows → feeds the Correctness "trace one concrete input" step:
         `get_affected_flows_tool` with `list_flows_tool` show which execution paths
         the change touches.
 
-     Token hygiene: prefer `detail_level="minimal"` on these calls and escalate to
-     `"standard"` only when minimal is insufficient.
+     Token hygiene: `detail_level="minimal"` returns only summary counts (risk,
+     impacted-file count) — **no source snippets and no file list**; use it for the
+     overview, then `get_impact_radius_tool(detail_level="minimal")` for the actual
+     blast-radius files. Avoid `"standard"` — it overflows the token limit even
+     when scoped (see above).
    - **`codegraph`** — `codegraph_explore "<changed symbols / file names>"`: read
      the **"Blast radius — what depends on these"** section it prints, plus the
      verbatim source of each consumer (treat that source as already Read).
@@ -154,20 +167,25 @@ memory. A consumer you skipped without declaring it is a bug in the review,
 not a clean pass. Prioritize files at the center of the business flow; read
 as many related files as the reference set demands.
 
-## Step 1.5 — Verify & ground (do not skip when the stack allows it)
+## Verify & ground (do not skip when the stack allows it)
 
 A review that only reasons about the diff is unverified. Before writing the
 report, ground your correctness claims in real tool output:
 
 1. **Run the project's non-mutating checks** — tests, typecheck, and lint,
-   scoped to the changed files where possible (e.g. `yarn test run <file>`,
-   `yarn typecheck`, `yarn eslint <file>`). Detect the runner from the repo
-   (package.json scripts, Makefile, CLAUDE.md). In a non-JS stack run the
-   equivalent (`go test`, `pytest`, `cargo test`); ask permission if the command
-   falls outside the allowed set.
+   scoped to the changed files where possible. Detect the **package manager**
+   (from the `packageManager` field / lockfile → pnpm | yarn | npm) **and the
+   runner** (package.json scripts, Makefile, CLAUDE.md). Prefer the underlying
+   binary scoped to the change (`npx eslint <files>`, `tsc --noEmit`) over
+   aggregate scripts. In a non-JS stack run the equivalent (`go test`, `pytest`,
+   `cargo test`); ask permission if the command falls outside the allowed set.
 2. **Only non-mutating commands.** Run tests / typecheck / lint — never a build
    that emits artifacts, codegen, or a formatter in `--write` mode. A review must
-   not change the tree.
+   not change the tree. **Aggregate scripts often hide these:** a repo's
+   `typecheck` may run `codegen` first and `lint` may chain a `--write` formatter
+   (e.g. `pnpm typecheck` → `codegen && …`, `pnpm lint` → `format:fix && …`).
+   Read the script in package.json before running it; if it mutates, invoke the
+   binary directly (`tsc --noEmit`, `eslint` without `--fix`).
 3. **If you cannot run them** (sandbox, missing deps), say so explicitly in the
    report and mark the affected findings **unverified** — do not imply you
    checked.
@@ -175,7 +193,7 @@ report, ground your correctness claims in real tool output:
    result from this step, not to a reading of the code. If the diff adds a test,
    confirm it actually runs and passes.
 
-## Step 2 — Review across dimensions
+## Review across dimensions
 
 ### Business Logic (most important dimension)
 
@@ -209,7 +227,7 @@ Null/empty/overflow, off-by-one, race conditions & concurrency, error handling &
 
 Naming, single responsibility, code duplication, test coverage, docs for non-obvious logic.
 
-## Step 3 — Classify severity
+## Classify severity
 
 Each issue MUST be assigned exactly one of 4 levels:
 
@@ -229,7 +247,7 @@ pick the higher level; when you have *verified* a mitigation, lower it and say s
 
 When torn between two levels → pick the higher one and state why.
 
-## Step 4 — Produce the report
+## Produce the report
 
 Write the report in English, following this template:
 
